@@ -43,10 +43,9 @@ def getEventLinkInfo():
     links = y.select("li a")
     valid_links = []
     for l in links:
-        # print(l)
-        if "/category" in str(l.text):
-            print(':DDD')
-            valid_links.append(l)
+        href = l.get('href')
+        if "/category" in href:
+            valid_links.append(href)
 
     print(valid_links)
     #print(response.text)
