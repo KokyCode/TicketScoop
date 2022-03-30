@@ -24,21 +24,30 @@ def getEventLinkInfo():
         'Accept-Encoding': 'gzip, deflate, br',
         'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
     }
+
     url = eventLink
     response = requests.get(url,headers=headers)
     x = BeautifulSoup(response.text, 'html.parser')
     res = x.find(id="__NEXT_DATA__").text
     ticketinfojson = json.loads(res)
-    availabletickets = ticketinfojson['props']['pageProps']['event']['availableTicketsCount']
-    if(availabletickets > 0):
-        print(str(availabletickets) + ' tickets available!')
+    availabletickets = ticketinfojson['props']['pageProps']['event']['entranceTypes']['edges']
+
+    for x in availabletickets:
+        title = x['node']['title'] 
+        count = str(x['node']['availableTicketsCount'])
+        id = x['node']['id']
+        print(title + ' - ' + count + ' available tickets. ' + '(' + id + ')')
+
+   #if(count > 0):
+        #print(str(availabletickets) + ' tickets available!')
         # Check listings available, grab all ID's and add em to the cart! Find out what hashing ID is
         
-    if(availabletickets == 0):
-        print('No tickets found... searching again...')
-        time.sleep(2)
-        getEventLinkInfo()
+    #if(availabletickets == 0):
+       # print('No tickets found... searching again...')
+        #time.sleep(2)
+        #getEventLinkInfo()
 
+    #print(ticketinfojson)
 
 getEventLinkInfo()
 
