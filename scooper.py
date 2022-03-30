@@ -8,7 +8,7 @@ print('TicketScoop V1.0.0 launched!')
 print('Developed by BennyB and Koky')
 
 
-eventLink = input("Please paste the TicketSwap URL you would like to scoop: ")
+eventLink = 'https://www.ticketswap.com/event/stormzy/dde99910-41f0-4a44-9f38-2afc503f1182'# input("Please paste the TicketSwap URL you would like to scoop: ")
 
 def getEventLinkInfo():
     headers = {
@@ -27,7 +27,8 @@ def getEventLinkInfo():
 
     response = requests.get(eventLink,headers=headers)
     x = BeautifulSoup(response.text, 'html.parser')
-    res = x.find(id="__NEXT_DATA__").text
+    y = x 
+    res = x.find(id="__NEXT_DATA__").string
     ticketinfojson = json.loads(res)
     availabletickets = ticketinfojson['props']['pageProps']['event']['entranceTypes']['edges']
     for x in availabletickets:
@@ -39,10 +40,15 @@ def getEventLinkInfo():
         #if(int(count) > 0 ):
             #print('Found ' + count + ' tickets available for ' + title + '. Grabbing listings for ' + id)
 
-    y = x.select("li a")
-    print(y)
+    links = y.select("li a")
+    valid_links = []
+    for l in links:
+        # print(l)
+        if "/category" in str(l.text):
+            print(':DDD')
+            valid_links.append(l)
 
-
+    print(valid_links)
     #print(response.text)
    #if(count > 0):
         #print(str(availabletickets) + ' tickets available!')
