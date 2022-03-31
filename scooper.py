@@ -10,137 +10,129 @@ print('Developed by BennyB and Koky')
 
 eventLink = input("Please paste the TicketSwap URL you would like to scoop: ")
 
-def slugify(text):
-    '''Join with dashes, eliminate punction, clip to maxlen, lowercase.
 
-        >>> ToSeoFriendly("The quick. brown4 fox jumped", 14)
-        'the-quick-brow'
-
-    '''
-    t = '-'.join(text.split())                                # join words with dashes
-    u = ''.join([c for c in t if c.isalnum() or c=='-'])   # remove punctation   
-    return u.rstrip('-').lower()      
-
-def getEventLinkInfo():
+def getEventLinkInfoMobile():
     headers = {
-        'Host': 'www.ticketswap.com',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-User': '?1',
-        'Sec-Fetch-Dest': 'document',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
-    }
-
-    response = requests.get(eventLink,headers=headers)
-    x = BeautifulSoup(response.text, 'html.parser')
-    y = x 
-    res = x.find(id="__NEXT_DATA__").string
-    ticketinfojson = json.loads(res)
-    ticketinfo = ticketinfojson['props']['pageProps']['event']['entranceTypes']['edges']
-    totalcount = 0
-
-    links = y.select("li a")
-        
-    valid_links = []
-    titles = []
-    for l in links:
-        href = l.get('href')
-        if 'event' in href:
-            valid_links.append(href)
-
-    for x in ticketinfo:
-        title = (x['node']['title'])
-        count = str(x['node']['availableTicketsCount'])
-        slug = x['node']['slug']
-        totalcount = totalcount + int(count)
-        id = x['node']['id']
-        if(int(count) > 0):
-           print('Found ' + count + ' tickets available for ' + title + '. Grabbing listings for ' + id) 
-           for v in valid_links:
-               m = v.split('/')    
-               if slug == m[5]:
-                   getListingInfo(v)
-
-    if(totalcount == 0):
-        print('No tickets found, searching again...')
-        getEventLinkInfo()
-
-def getListingInfo(url):
-    print('Grabbing listing info...')
-    headers = {
-        'Host': 'www.ticketswap.com',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'max-age=0',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-User': '?1',
-        'Sec-Fetch-Dest': 'document',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
-    }
-
-    response = requests.get(url,headers=headers)
-    x = BeautifulSoup(response.text, 'html.parser')
-    res = x.find(id="__NEXT_DATA__").string
-    listings = []
-    ticketinfojson = json.loads(res)
-    ticketinfo = ticketinfojson['props']['pageProps']['initialApolloState']
-    for key, value in ticketinfo.items():
-        if 'PublicListing:' in str(key):
-            listings.append(key)
-            #print(key)
-    #print(ticketinfo)
-    for l in listings:
-        tickethash = ticketinfo[l]['hash']
-        ticketid = ticketinfo[l]['id']
-        ticketstatus = ticketinfo[l]['status']
-        if(ticketstatus == 'AVAILABLE'):
-            addToCart(tickethash, ticketid)
-            
-
-def addToCart(tickethash, ticketid):
-    headers = {
-        'Host': 'api.ticketswap.com',
-        'Connection': 'keep-alive',
+        'Accept': 'application/json',
+        'X-APOLLO-OPERATION-ID': '93c02f4d01c0db3c281e4055a6722973cd92fd29f5e55088e19afaa941f06455',
+        'X-APOLLO-OPERATION-NAME': 'GetEvent',
+        'X-APOLLO-CACHE-KEY': '987135bac87dd4a227889c8b250c32fb',
+        'X-APOLLO-CACHE-FETCH-STRATEGY': 'NETWORK_ONLY',
+        'X-APOLLO-EXPIRE-TIMEOUT': '0',
+        'X-APOLLO-EXPIRE-AFTER-READ': 'false',
+        'X-APOLLO-PREFETCH': 'false',
+        'X-APOLLO-CACHE-DO-NOT-STORE': 'false',
+        'Content-Type': 'application/json; charset=utf-8',
         'Content-Length': '9999',
-        'authorization': 'Bearer YzA5YjkzOGJmMzQxNTY3NDY1NWYxZWQwYjhiY2U3NTkxNGJmZmJlYWM1NDg4NTI4MjA3ZWZiYmU5ZTFhNGY3Yw',
-        'content-type': 'application/json',
-        'accept': '*/*',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36',
-        'sec-ch-ua-platform': "macOS",
-        'Origin': 'https://www.ticketswap.com',
-        'Sec-Fetch-Site': 'same-site',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Dest': 'empty',
-        'Referer': 'https://www.ticketswap.com/',
-        'Accept-Encoding': 'gzip, deflate, br'
+        'Host': 'api.ticketswap.com',
+        'Connection': 'Keep-Alive',
+        'Accept-Encoding': 'gzip',
+        'User-Agent': 'okhttp/4.9.0',
+        'Accept-Language': 'en_IE',
+        'mobile-app-version': '22.02.6414',
+        'mobile-app-build-number': '6414',
+        'mobile-app-os': 'Android'
+
     }
-    url = 'https://api.ticketswap.com/graphql/public?'
-    post = {
-        "operationName": "addTicketsToCart",
-        "variables": {
-        "input": {
-            "listingId": ticketid,
-            "listingHash": tickethash,
-            "amountOfTickets": 1
-        }
-        },
-        "query": "mutation addTicketsToCart($input: AddTicketsToCartInput!) {\n  addTicketsToCart(input: $input) {\n    user {\n      id\n      cart {\n        ...cart\n        __typename\n      }\n      checkout {\n        rows {\n          id\n          title\n          totalPrice {\n            ...money\n            __typename\n          }\n          quantity\n          isMandatory\n          ... on CheckoutTicketRow {\n            id\n            quantity\n            isSecureSwap\n            totalPrice {\n              ...money\n              __typename\n            }\n            eventType {\n              ...eventTypeCheckout\n              __typename\n            }\n            ticketGroups {\n              ...ticketGroups\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    errors {\n      ...cartError\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment cartError on Error {\n  code\n  message\n  __typename\n}\n\nfragment cart on Cart {\n  id\n  isExpired\n  currency\n  __typename\n}\n\nfragment ticketGroups on CheckoutTicketGroup {\n  quantity\n  listing {\n    id\n    dateRange {\n      startDate\n      endDate\n      __typename\n    }\n    description\n    seller {\n      id\n      avatar\n      firstname\n      __typename\n    }\n    __typename\n  }\n  price {\n    ...money\n    __typename\n  }\n  totalPrice {\n    ...money\n    __typename\n  }\n  tickets {\n    id\n    hasAttachment\n    seating {\n      id\n      entrance\n      section\n      row\n      seat\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment money on Money {\n  amount\n  currency\n  __typename\n}\n\nfragment eventTypeCheckout on EventType {\n  id\n  slug\n  title\n  startDate\n  endDate\n  isOngoing\n  seatingOptions {\n    entrance\n    section\n    row\n    seat\n    __typename\n  }\n  buyerWarning {\n    message\n    __typename\n  }\n  event {\n    id\n    name\n    startDate\n    endDate\n    timeZone\n    location {\n      id\n      name\n      __typename\n    }\n    closedLoopInformation {\n      ...closedLoopInformation\n      __typename\n    }\n    types(first: 99) {\n      edges {\n        node {\n          id\n          slug\n          availableListings: listings(first: 1, filter: {listingStatus: AVAILABLE}) {\n            edges {\n              node {\n                id\n                hash\n                price {\n                  totalPriceWithTransactionFee {\n                    ...money\n                    __typename\n                  }\n                  __typename\n                }\n                numberOfTicketsStillForSale\n                __typename\n              }\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment closedLoopInformation on ClosedLoopEventInformation {\n  ticketProviderName\n  findYourTicketsUrl\n  __typename\n}\n"
+
+    url = 'https://api.ticketswap.com/graphql/public?flow=discovery'
+    data = '{"operationName":"GetEvent","variables":{"id":"RXZlbnQ6Y2Y2ZWYzYzktZmI1Ny00NjFkLWFlYWMtNzMwMzMxMzUyNDJi"},"query":"query GetEvent($id: ID!) { node(id: $id) { __typename ...Event } } fragment Event on Event { __typename ...EventItemFields ticketShopUrl category soldTicketsCount ticketAlertsCount isHighlighted uri { __typename ...Uri } createListingUri { __typename ...Uri } isSellingBlocked isBuyingBlocked types(first: 99) { __typename pageInfo { __typename ...PageInfo } edges { __typename node { __typename ...EventTypeFields } } } organizerBrands { __typename id isFollowedByViewer name logoUrl } closedLoopInformation { __typename ... ClosedLoopInformation } eventVideo { __typename videoUrl thumbnailUrl } uploadWarning { __typename ... EventUploadWarning } facebookEventWalls { __typename facebookUrl } cancellationReason } fragment EventItemFields on Event { __typename id name description country { __typename ...Country } location { __typename ...LocationFields } imageUrl startDate endDate category availableTicketsCount lowestPrice { __typename ...Money } maximumPercentage status warning { __typename title message url { __typename text url } } } fragment Uri on Uri { __typename url path trackingUrl } fragment ClosedLoopInformation on ClosedLoopEventInformation { __typename ticketProviderName findYourTicketsUrl } fragment EventUploadWarning on EventUploadWarning { __typename message position } fragment PageInfo on PageInfo { __typename hasNextPage endCursor } fragment EventTypeFields on EventType { __typename id title availableTicketsCount soldTicketsCount ticketAlertsCount startDate endDate isSellingBlocked isRaffleEnabled isOngoing originalTicketPrice { __typename ... Money } lowestPrice { __typename ... Money } maximumAllowedPrice { __typename ... Money } isExpired organizerProduct { __typename ... OrganizerProduct } bundledTickets { __typename ... BundledTickets } seatingOptions { __typename ... SeatingOptions } uploadWarning { __typename ... EventTypeUploadWarning } } fragment Money on Money { __typename amount currency } fragment OrganizerProduct on OrganizerProduct { __typename id displayPrice { __typename ... Money } shop { __typename organizerBranding { __typename name image } } } fragment BundledTickets on EventTypeBundledTickets { __typename amount } fragment SeatingOptions on SeatingOptions { __typename entrance row seat section } fragment EventTypeUploadWarning on EventTypeUploadWarning { __typename message position } fragment Country on Country { __typename name } fragment LocationFields on Location { __typename id name city { __typename ...CityFields } image uri { __typename ...Uri } geoInfo { __typename latitude longitude } supportsAttachments amountOfActiveUpcomingEvents } fragment CityFields on City { __typename id name country { __typename ...Country } imageUrl uri { __typename ...Uri } geoInfo { __typename latitude longitude } }"}'
+    response = requests.post(url, data=data, headers=headers)
+
+    if '403 Forbidden' in response.text:
+        print('Possible ban detected. Pausing for 5 minutes.')
+        time.sleep(300)
+        getEventLinkInfoMobile()
+
+    jsonresp = response.json()
+    availabletickets = jsonresp['data']['node']['availableTicketsCount']
+    ticketinfo = jsonresp['data']['node']['types']['edges']
+
+    if(availabletickets > 0):
+        for x in ticketinfo:
+            tickettitle = x['node']['title']
+            ticketid = x['node']['id']
+            ticketamount = x['node']['availableTicketsCount']
+            # print(str(ticketamount) + ' tickets available. Type: ' +
+            #      tickettitle + '. Grabbing listing info.')
+            getListingInfoMobile(ticketid)
+
+    if(availabletickets == 0):
+        print('No tickets available, searching again.')
+        getEventLinkInfoMobile()
+
+def getListingInfoMobile(id):
+    headers = {
+        'Accept': 'application/json',
+        'X-APOLLO-OPERATION-ID': '93c02f4d01c0db3c281e4055a6722973cd92fd29f5e55088e19afaa941f06455',
+        'X-APOLLO-OPERATION-NAME': 'GetEvent',
+        'X-APOLLO-CACHE-KEY': '987135bac87dd4a227889c8b250c32fb',
+        'X-APOLLO-CACHE-FETCH-STRATEGY': 'NETWORK_ONLY',
+        'X-APOLLO-EXPIRE-TIMEOUT': '0',
+        'X-APOLLO-EXPIRE-AFTER-READ': 'false',
+        'X-APOLLO-PREFETCH': 'false',
+        'X-APOLLO-CACHE-DO-NOT-STORE': 'false',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': '9999',
+        'Host': 'api.ticketswap.com',
+        'Connection': 'Keep-Alive',
+        'Accept-Encoding': 'gzip',
+        'User-Agent': 'okhttp/4.9.0',
+        'Accept-Language': 'en_IE',
+        'mobile-app-version': '22.02.6414',
+        'mobile-app-build-number': '6414',
+        'mobile-app-os': 'Android'
+
     }
-    response = requests.post(url, json=post, headers=headers)
-    if 'totalPriceWithTransactionFee' in response.text:
-        print('Sucessfully added ticket to cart')
-    else:
-        print('Failed to add ticket to cart. Searching again.')
-        getEventLinkInfo()
 
-getEventLinkInfo()
+    url = 'https://api.ticketswap.com/graphql/public?flow=discovery '
+    data = '{"operationName":"GetFilteredListingsForEventType","variables":{"eventTypeId":"RXZlbnRUeXBlOjE4NjU0MjM=","first":4,"after":null,"status":"AVAILABLE","dateRange":null},"query":"query GetFilteredListingsForEventType($eventTypeId: ID!, $first: Int!, $after: String, $status: ListingStatus!, $dateRange: DateRangeInput) { node(id: $eventTypeId) { __typename ... on EventType { listings: listings(first: $first, after: $after, filter: {listingStatus: $status, dateRange: $dateRange}) { __typename pageInfo { __typename endCursor hasNextPage } edges { __typename node { __typename id hash seller { __typename avatar } price { __typename totalPriceWithTransactionFee { __typename amount currency } } tickets(first: 99) { __typename edges { __typename node { __typename status } } } description dateRange { __typename startDate endDate } } } } } } }"}'
+    response = requests.post(url, data=data, headers=headers)
+    jsonresp = response.json()
+    listinginfo = jsonresp['data']['node']['listings']['edges']
+    for i in listinginfo:
+        ticketid = i['node']['id']
+        tickethash = i['node']['hash']
+        ticketprice = i['node']['price']['totalPriceWithTransactionFee']['amount']
+        ticketcurrency = i['node']['price']['totalPriceWithTransactionFee']['currency']
+        # print('TID:' + ticketid + ' HASH:' + tickethash +
+        #      ' ' + ticketcurrency + ' ' + str(ticketprice))
+        addToCartMobile(ticketid, tickethash)
 
 
+def addToCartMobile(ticketid, tickethash):
+    headers = {
+        'Accept': 'application/json',
+        'X-APOLLO-OPERATION-ID': '93c02f4d01c0db3c281e4055a6722973cd92fd29f5e55088e19afaa941f06455',
+        'X-APOLLO-OPERATION-NAME': 'AddTicketsToCart',
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': '9999',
+        'Host': 'api.ticketswap.com',
+        'Connection': 'Keep-Alive',
+        'Accept-Encoding': 'gzip',
+        'User-Agent': 'okhttp/4.9.0',
+        'Accept-Language': 'en_IE',
+        'Authorization': 'Bearer OThlMDFkMmNkYjJhOWE1MTdjMTQ3MzMxMWQ2OWUwZjQ1YWU5ZDYwOTAyMDk3OGViZDYwYTQ5ZDEwOWIwN2Q4OQ',
+        'mobile-app-version': '22.02.6414',
+        'mobile-app-build-number': '6414',
+        'mobile-app-os': 'Android'
+
+    }
+
+    url = 'https://api.ticketswap.com/graphql/public?flow=discovery '
+    data = '{"operationName":"AddTicketsToCart","variables":{"listingId":"' + ticketid + '","listingHash":"' + tickethash + \
+        '","amountOfTickets":1},"query":"mutation AddTicketsToCart($listingId: ID!, $listingHash: String!, $amountOfTickets: Int, $ticketIds: [ID]) { addTicketsToCart(input: {listingId: $listingId, listingHash: $listingHash, amountOfTickets: $amountOfTickets, ticketIds: $ticketIds}) { __typename numberOfRequestedTickets numberOfReservedTickets errors { __typename code message } } }"}'
+    response = requests.post(url, data=data, headers=headers)
+    jsonresp = response.json()
+    responseinfo = jsonresp['data']['addTicketsToCart']['errors']
+    print(responseinfo)
+    if not responseinfo:
+        print('Ticket added to cart, nice one mate!')
+    elif responseinfo[0]['code'] == 'CART_CURRENCY_MISMATCH':
+        print('You cannot have multiple currencies in your checkout. For example a GBP ticket and a EUR ticket. Please empty the cart.')
+    elif responseinfo[0]['code'] == 'NO_TICKETS_COULD_BE_RESERVED':
+        print('Someone else grabbed the ticket in time, searching again')
+        getEventLinkInfoMobile()
+
+
+getEventLinkInfoMobile()
