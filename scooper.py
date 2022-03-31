@@ -68,10 +68,10 @@ def getEventLinkInfo():
 
     if(totalcount == 0):
         print('No tickets found, searching again...')
-        #time.sleep(2)
-        #getEventLinkInfo()
+        getEventLinkInfo()
 
 def getListingInfo(url):
+    print('Grabbing listing info...')
     headers = {
         'Host': 'www.ticketswap.com',
         'Connection': 'keep-alive',
@@ -96,9 +96,50 @@ def getListingInfo(url):
         if 'PublicListing:' in str(key):
             listings.append(key)
             #print(key)
+    #print(ticketinfo)
+    for l in listings:
+        tickethash = ticketinfo[l]['hash']
+        ticketid = ticketinfo[l]['id']
+        ticketstatus = ticketinfo[l]['status']
+        if(ticketstatus == 'AVAILABLE'):
+            addToCart(tickethash, ticketid)
+            
 
-    print(listings)
-
+def addToCart(tickethash, ticketid):
+    headers = {
+        'Host': 'api.ticketswap.com',
+        'Connection': 'keep-alive',
+        'Content-Length': '9999',
+        'authorization': 'Bearer YzA5YjkzOGJmMzQxNTY3NDY1NWYxZWQwYjhiY2U3NTkxNGJmZmJlYWM1NDg4NTI4MjA3ZWZiYmU5ZTFhNGY3Yw',
+        'content-type': 'application/json',
+        'accept': '*/*',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36',
+        'sec-ch-ua-platform': "macOS",
+        'Origin': 'https://www.ticketswap.com',
+        'Sec-Fetch-Site': 'same-site',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty',
+        'Referer': 'https://www.ticketswap.com/',
+        'Accept-Encoding': 'gzip, deflate, br'
+    }
+    url = 'https://api.ticketswap.com/graphql/public?'
+    post = {
+        "operationName": "addTicketsToCart",
+        "variables": {
+        "input": {
+            "listingId": ticketid,
+            "listingHash": tickethash,
+            "amountOfTickets": 1
+        }
+        },
+        "query": "mutation addTicketsToCart($input: AddTicketsToCartInput!) {\n  addTicketsToCart(input: $input) {\n    user {\n      id\n      cart {\n        ...cart\n        __typename\n      }\n      checkout {\n        rows {\n          id\n          title\n          totalPrice {\n            ...money\n            __typename\n          }\n          quantity\n          isMandatory\n          ... on CheckoutTicketRow {\n            id\n            quantity\n            isSecureSwap\n            totalPrice {\n              ...money\n              __typename\n            }\n            eventType {\n              ...eventTypeCheckout\n              __typename\n            }\n            ticketGroups {\n              ...ticketGroups\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    errors {\n      ...cartError\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment cartError on Error {\n  code\n  message\n  __typename\n}\n\nfragment cart on Cart {\n  id\n  isExpired\n  currency\n  __typename\n}\n\nfragment ticketGroups on CheckoutTicketGroup {\n  quantity\n  listing {\n    id\n    dateRange {\n      startDate\n      endDate\n      __typename\n    }\n    description\n    seller {\n      id\n      avatar\n      firstname\n      __typename\n    }\n    __typename\n  }\n  price {\n    ...money\n    __typename\n  }\n  totalPrice {\n    ...money\n    __typename\n  }\n  tickets {\n    id\n    hasAttachment\n    seating {\n      id\n      entrance\n      section\n      row\n      seat\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment money on Money {\n  amount\n  currency\n  __typename\n}\n\nfragment eventTypeCheckout on EventType {\n  id\n  slug\n  title\n  startDate\n  endDate\n  isOngoing\n  seatingOptions {\n    entrance\n    section\n    row\n    seat\n    __typename\n  }\n  buyerWarning {\n    message\n    __typename\n  }\n  event {\n    id\n    name\n    startDate\n    endDate\n    timeZone\n    location {\n      id\n      name\n      __typename\n    }\n    closedLoopInformation {\n      ...closedLoopInformation\n      __typename\n    }\n    types(first: 99) {\n      edges {\n        node {\n          id\n          slug\n          availableListings: listings(first: 1, filter: {listingStatus: AVAILABLE}) {\n            edges {\n              node {\n                id\n                hash\n                price {\n                  totalPriceWithTransactionFee {\n                    ...money\n                    __typename\n                  }\n                  __typename\n                }\n                numberOfTicketsStillForSale\n                __typename\n              }\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment closedLoopInformation on ClosedLoopEventInformation {\n  ticketProviderName\n  findYourTicketsUrl\n  __typename\n}\n"
+    }
+    response = requests.post(url, json=post, headers=headers)
+    if 'totalPriceWithTransactionFee' in response.text:
+        print('Sucessfully added ticket to cart')
+    else:
+        print('Failed to add ticket to cart. Searching again.')
+        getEventLinkInfo()
 
 getEventLinkInfo()
 
