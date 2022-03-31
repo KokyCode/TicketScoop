@@ -57,16 +57,14 @@ def getEventLinkInfo():
         title = (x['node']['title'])
         count = str(x['node']['availableTicketsCount'])
         slug = x['node']['slug']
-        #print(slug)
         totalcount = totalcount + int(count)
         id = x['node']['id']
-        #print(title + ' - ' + count + ' available tickets. ' + '(' + id + ')')
         if(int(count) > 0):
            print('Found ' + count + ' tickets available for ' + title + '. Grabbing listings for ' + id) 
            for v in valid_links:
                m = v.split('/')    
                if slug == m[5]:
-                   getListingInfo(v)     
+                   getListingInfo(v)
 
     if(totalcount == 0):
         print('No tickets found, searching again...')
@@ -91,9 +89,16 @@ def getListingInfo(url):
     response = requests.get(url,headers=headers)
     x = BeautifulSoup(response.text, 'html.parser')
     res = x.find(id="__NEXT_DATA__").string
+    listings = []
     ticketinfojson = json.loads(res)
     ticketinfo = ticketinfojson['props']['pageProps']['initialApolloState']
-    
+    for key, value in ticketinfo.items():
+        if 'PublicListing:' in str(key):
+            listings.append(key)
+            #print(key)
+
+    print(listings)
+
 
 getEventLinkInfo()
 
