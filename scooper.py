@@ -6,12 +6,32 @@ import time
 
 print('TicketScoop V1.0.0 launched!')
 print('Developed by BennyB and Koky')
+eventLink = input('Enter the Ticketswap URL: ')
 
+def getEventIdBrowser(url):
+    headers = {
+        'Host': 'www.ticketswap.com',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'max-age=0',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-User': '?1',
+        'Sec-Fetch-Dest': 'document',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8'
+    }
+    response = requests.get(url,headers=headers)
+    x = BeautifulSoup(response.text, 'html.parser')
+    res = x.find(id="__NEXT_DATA__").string
+    ticketinfojson = json.loads(res)
+    eventId = ticketinfojson['props']['pageProps']['eventId']
+    print('Found EventId: ' + eventId + '. Scraping started.')
+    getEventLinkInfoMobile(eventId)
 
-eventLink = input("Please paste the TicketSwap URL you would like to scoop: ")
-
-
-def getEventLinkInfoMobile():
+def getEventLinkInfoMobile(eventid):
+    x = eventid
     headers = {
         'Accept': 'application/json',
         'X-APOLLO-OPERATION-ID': '93c02f4d01c0db3c281e4055a6722973cd92fd29f5e55088e19afaa941f06455',
@@ -36,13 +56,13 @@ def getEventLinkInfoMobile():
     }
 
     url = 'https://api.ticketswap.com/graphql/public?flow=discovery'
-    data = '{"operationName":"GetEvent","variables":{"id":"RXZlbnQ6Y2Y2ZWYzYzktZmI1Ny00NjFkLWFlYWMtNzMwMzMxMzUyNDJi"},"query":"query GetEvent($id: ID!) { node(id: $id) { __typename ...Event } } fragment Event on Event { __typename ...EventItemFields ticketShopUrl category soldTicketsCount ticketAlertsCount isHighlighted uri { __typename ...Uri } createListingUri { __typename ...Uri } isSellingBlocked isBuyingBlocked types(first: 99) { __typename pageInfo { __typename ...PageInfo } edges { __typename node { __typename ...EventTypeFields } } } organizerBrands { __typename id isFollowedByViewer name logoUrl } closedLoopInformation { __typename ... ClosedLoopInformation } eventVideo { __typename videoUrl thumbnailUrl } uploadWarning { __typename ... EventUploadWarning } facebookEventWalls { __typename facebookUrl } cancellationReason } fragment EventItemFields on Event { __typename id name description country { __typename ...Country } location { __typename ...LocationFields } imageUrl startDate endDate category availableTicketsCount lowestPrice { __typename ...Money } maximumPercentage status warning { __typename title message url { __typename text url } } } fragment Uri on Uri { __typename url path trackingUrl } fragment ClosedLoopInformation on ClosedLoopEventInformation { __typename ticketProviderName findYourTicketsUrl } fragment EventUploadWarning on EventUploadWarning { __typename message position } fragment PageInfo on PageInfo { __typename hasNextPage endCursor } fragment EventTypeFields on EventType { __typename id title availableTicketsCount soldTicketsCount ticketAlertsCount startDate endDate isSellingBlocked isRaffleEnabled isOngoing originalTicketPrice { __typename ... Money } lowestPrice { __typename ... Money } maximumAllowedPrice { __typename ... Money } isExpired organizerProduct { __typename ... OrganizerProduct } bundledTickets { __typename ... BundledTickets } seatingOptions { __typename ... SeatingOptions } uploadWarning { __typename ... EventTypeUploadWarning } } fragment Money on Money { __typename amount currency } fragment OrganizerProduct on OrganizerProduct { __typename id displayPrice { __typename ... Money } shop { __typename organizerBranding { __typename name image } } } fragment BundledTickets on EventTypeBundledTickets { __typename amount } fragment SeatingOptions on SeatingOptions { __typename entrance row seat section } fragment EventTypeUploadWarning on EventTypeUploadWarning { __typename message position } fragment Country on Country { __typename name } fragment LocationFields on Location { __typename id name city { __typename ...CityFields } image uri { __typename ...Uri } geoInfo { __typename latitude longitude } supportsAttachments amountOfActiveUpcomingEvents } fragment CityFields on City { __typename id name country { __typename ...Country } imageUrl uri { __typename ...Uri } geoInfo { __typename latitude longitude } }"}'
+    data = '{"operationName":"GetEvent","variables":{"id":"' + x + '"},"query":"query GetEvent($id: ID!) { node(id: $id) { __typename ...Event } } fragment Event on Event { __typename ...EventItemFields ticketShopUrl category soldTicketsCount ticketAlertsCount isHighlighted uri { __typename ...Uri } createListingUri { __typename ...Uri } isSellingBlocked isBuyingBlocked types(first: 99) { __typename pageInfo { __typename ...PageInfo } edges { __typename node { __typename ...EventTypeFields } } } organizerBrands { __typename id isFollowedByViewer name logoUrl } closedLoopInformation { __typename ... ClosedLoopInformation } eventVideo { __typename videoUrl thumbnailUrl } uploadWarning { __typename ... EventUploadWarning } facebookEventWalls { __typename facebookUrl } cancellationReason } fragment EventItemFields on Event { __typename id name description country { __typename ...Country } location { __typename ...LocationFields } imageUrl startDate endDate category availableTicketsCount lowestPrice { __typename ...Money } maximumPercentage status warning { __typename title message url { __typename text url } } } fragment Uri on Uri { __typename url path trackingUrl } fragment ClosedLoopInformation on ClosedLoopEventInformation { __typename ticketProviderName findYourTicketsUrl } fragment EventUploadWarning on EventUploadWarning { __typename message position } fragment PageInfo on PageInfo { __typename hasNextPage endCursor } fragment EventTypeFields on EventType { __typename id title availableTicketsCount soldTicketsCount ticketAlertsCount startDate endDate isSellingBlocked isRaffleEnabled isOngoing originalTicketPrice { __typename ... Money } lowestPrice { __typename ... Money } maximumAllowedPrice { __typename ... Money } isExpired organizerProduct { __typename ... OrganizerProduct } bundledTickets { __typename ... BundledTickets } seatingOptions { __typename ... SeatingOptions } uploadWarning { __typename ... EventTypeUploadWarning } } fragment Money on Money { __typename amount currency } fragment OrganizerProduct on OrganizerProduct { __typename id displayPrice { __typename ... Money } shop { __typename organizerBranding { __typename name image } } } fragment BundledTickets on EventTypeBundledTickets { __typename amount } fragment SeatingOptions on SeatingOptions { __typename entrance row seat section } fragment EventTypeUploadWarning on EventTypeUploadWarning { __typename message position } fragment Country on Country { __typename name } fragment LocationFields on Location { __typename id name city { __typename ...CityFields } image uri { __typename ...Uri } geoInfo { __typename latitude longitude } supportsAttachments amountOfActiveUpcomingEvents } fragment CityFields on City { __typename id name country { __typename ...Country } imageUrl uri { __typename ...Uri } geoInfo { __typename latitude longitude } }"}'
     response = requests.post(url, data=data, headers=headers)
 
     if '403 Forbidden' in response.text:
-        print('Possible ban detected. Pausing for 5 minutes.')
-        time.sleep(300)
-        getEventLinkInfoMobile()
+        print('Possible ban detected. Pausing for 2 minutes.')
+        time.sleep(120)
+        getEventIdBrowser(eventLink)
 
     jsonresp = response.json()
     availabletickets = jsonresp['data']['node']['availableTicketsCount']
@@ -53,13 +73,13 @@ def getEventLinkInfoMobile():
             tickettitle = x['node']['title']
             ticketid = x['node']['id']
             ticketamount = x['node']['availableTicketsCount']
-            # print(str(ticketamount) + ' tickets available. Type: ' +
-            #      tickettitle + '. Grabbing listing info.')
+            print(str(ticketamount) + ' tickets available. Type: ' +
+                tickettitle + '. Grabbing listing info.')
             getListingInfoMobile(ticketid)
 
     if(availabletickets == 0):
-        print('No tickets available, searching again.')
-        getEventLinkInfoMobile()
+        print('No tickets available. Retrying...')
+        getEventLinkInfoMobile(x)
 
 def getListingInfoMobile(id):
     headers = {
@@ -86,7 +106,7 @@ def getListingInfoMobile(id):
     }
 
     url = 'https://api.ticketswap.com/graphql/public?flow=discovery '
-    data = '{"operationName":"GetFilteredListingsForEventType","variables":{"eventTypeId":"RXZlbnRUeXBlOjE4NjU0MjM=","first":4,"after":null,"status":"AVAILABLE","dateRange":null},"query":"query GetFilteredListingsForEventType($eventTypeId: ID!, $first: Int!, $after: String, $status: ListingStatus!, $dateRange: DateRangeInput) { node(id: $eventTypeId) { __typename ... on EventType { listings: listings(first: $first, after: $after, filter: {listingStatus: $status, dateRange: $dateRange}) { __typename pageInfo { __typename endCursor hasNextPage } edges { __typename node { __typename id hash seller { __typename avatar } price { __typename totalPriceWithTransactionFee { __typename amount currency } } tickets(first: 99) { __typename edges { __typename node { __typename status } } } description dateRange { __typename startDate endDate } } } } } } }"}'
+    data = '{"operationName":"GetFilteredListingsForEventType","variables":{"eventTypeId": "' + id + '","first":4,"after":null,"status":"AVAILABLE","dateRange":null},"query":"query GetFilteredListingsForEventType($eventTypeId: ID!, $first: Int!, $after: String, $status: ListingStatus!, $dateRange: DateRangeInput) { node(id: $eventTypeId) { __typename ... on EventType { listings: listings(first: $first, after: $after, filter: {listingStatus: $status, dateRange: $dateRange}) { __typename pageInfo { __typename endCursor hasNextPage } edges { __typename node { __typename id hash seller { __typename avatar } price { __typename totalPriceWithTransactionFee { __typename amount currency } } tickets(first: 99) { __typename edges { __typename node { __typename status } } } description dateRange { __typename startDate endDate } } } } } } }"}'
     response = requests.post(url, data=data, headers=headers)
     jsonresp = response.json()
     listinginfo = jsonresp['data']['node']['listings']['edges']
@@ -125,14 +145,17 @@ def addToCartMobile(ticketid, tickethash):
     response = requests.post(url, data=data, headers=headers)
     jsonresp = response.json()
     responseinfo = jsonresp['data']['addTicketsToCart']['errors']
-    print(responseinfo)
     if not responseinfo:
-        print('Ticket added to cart, nice one mate!')
+        print('Ticket added to cart. This will be valid for 10 minutes.')
     elif responseinfo[0]['code'] == 'CART_CURRENCY_MISMATCH':
         print('You cannot have multiple currencies in your checkout. For example a GBP ticket and a EUR ticket. Please empty the cart.')
     elif responseinfo[0]['code'] == 'NO_TICKETS_COULD_BE_RESERVED':
         print('Someone else grabbed the ticket in time, searching again')
         getEventLinkInfoMobile()
+    elif responseinfo[0]['code'] == 'MAXIMUM_RESERVABLE_AMOUNT_OF_TICKETS_PER_EVENT_REACHED':
+        print('Your cart is full! Please empty the cart.')
+    else:
+        print('[DEBUG]' + responseinfo[0]['message'] + '. (please add a new check to this response) code: ' + responseinfo[0]['code'])
+        
 
-
-getEventLinkInfoMobile()
+getEventIdBrowser(eventLink)
