@@ -3,10 +3,26 @@ import requests
 import json
 from bs4 import BeautifulSoup
 import time
+import urllib.request
+import urllib.parse
 
+
+ 
 print('TicketScoop V1.0.0 launched!')
 print('Developed by BennyB and Koky')
+global eventLink
 eventLink = input('Enter the Ticketswap URL: ')
+phonenumber = input('Please enter your Phone Number: (eg: 353858150203) ')
+
+def sendSMS(numbers, message):
+    data =  urllib.parse.urlencode({'apikey': 'NmY1NDQyMzQ3OTUxMzg2NTc5NTYzMzc1NTY1MTYxNmI=	', 'numbers': numbers,
+        'message' : message, 'sender': 'TicketScoop'})
+    data = data.encode('utf-8')
+    request = urllib.request.Request("https://api.txtlocal.com/send/?")
+    f = urllib.request.urlopen(request, data)
+    fr = f.read()
+    return(fr)
+
 
 def getEventIdBrowser(url):
     headers = {
@@ -31,6 +47,7 @@ def getEventIdBrowser(url):
     getEventLinkInfoMobile(eventId)
 
 def getEventLinkInfoMobile(eventid):
+    foundticket = 0
     x = eventid
     headers = {
         'Accept': 'application/json',
@@ -57,29 +74,29 @@ def getEventLinkInfoMobile(eventid):
 
     url = 'https://api.ticketswap.com/graphql/public?flow=discovery'
     data = '{"operationName":"GetEvent","variables":{"id":"' + x + '"},"query":"query GetEvent($id: ID!) { node(id: $id) { __typename ...Event } } fragment Event on Event { __typename ...EventItemFields ticketShopUrl category soldTicketsCount ticketAlertsCount isHighlighted uri { __typename ...Uri } createListingUri { __typename ...Uri } isSellingBlocked isBuyingBlocked types(first: 99) { __typename pageInfo { __typename ...PageInfo } edges { __typename node { __typename ...EventTypeFields } } } organizerBrands { __typename id isFollowedByViewer name logoUrl } closedLoopInformation { __typename ... ClosedLoopInformation } eventVideo { __typename videoUrl thumbnailUrl } uploadWarning { __typename ... EventUploadWarning } facebookEventWalls { __typename facebookUrl } cancellationReason } fragment EventItemFields on Event { __typename id name description country { __typename ...Country } location { __typename ...LocationFields } imageUrl startDate endDate category availableTicketsCount lowestPrice { __typename ...Money } maximumPercentage status warning { __typename title message url { __typename text url } } } fragment Uri on Uri { __typename url path trackingUrl } fragment ClosedLoopInformation on ClosedLoopEventInformation { __typename ticketProviderName findYourTicketsUrl } fragment EventUploadWarning on EventUploadWarning { __typename message position } fragment PageInfo on PageInfo { __typename hasNextPage endCursor } fragment EventTypeFields on EventType { __typename id title availableTicketsCount soldTicketsCount ticketAlertsCount startDate endDate isSellingBlocked isRaffleEnabled isOngoing originalTicketPrice { __typename ... Money } lowestPrice { __typename ... Money } maximumAllowedPrice { __typename ... Money } isExpired organizerProduct { __typename ... OrganizerProduct } bundledTickets { __typename ... BundledTickets } seatingOptions { __typename ... SeatingOptions } uploadWarning { __typename ... EventTypeUploadWarning } } fragment Money on Money { __typename amount currency } fragment OrganizerProduct on OrganizerProduct { __typename id displayPrice { __typename ... Money } shop { __typename organizerBranding { __typename name image } } } fragment BundledTickets on EventTypeBundledTickets { __typename amount } fragment SeatingOptions on SeatingOptions { __typename entrance row seat section } fragment EventTypeUploadWarning on EventTypeUploadWarning { __typename message position } fragment Country on Country { __typename name } fragment LocationFields on Location { __typename id name city { __typename ...CityFields } image uri { __typename ...Uri } geoInfo { __typename latitude longitude } supportsAttachments amountOfActiveUpcomingEvents } fragment CityFields on City { __typename id name country { __typename ...Country } imageUrl uri { __typename ...Uri } geoInfo { __typename latitude longitude } }"}'
-    response = requests.post(url, data=data, headers=headers)
+    while foundticket == 0:
+        print('failed to find ticket')
+        response = requests.post(url, data=data, headers=headers)
 
-    if '403 Forbidden' in response.text:
-        print('Possible ban detected. Pausing for 2 minutes.')
-        time.sleep(120)
-        getEventIdBrowser(eventLink)
+        if '403 Forbidden' in response.text:
+            print('Possible ban detected. Pausing for 5 minutes.')
+            time.sleep(300)
+            continue
 
-    jsonresp = response.json()
-    availabletickets = jsonresp['data']['node']['availableTicketsCount']
-    ticketinfo = jsonresp['data']['node']['types']['edges']
+        jsonresp = response.json()
+        availabletickets = jsonresp['data']['node']['availableTicketsCount']
+        ticketinfo = jsonresp['data']['node']['types']['edges']
 
-    if(availabletickets > 0):
-        for x in ticketinfo:
-            tickettitle = x['node']['title']
-            ticketid = x['node']['id']
-            ticketamount = x['node']['availableTicketsCount']
-            print(str(ticketamount) + ' tickets available. Type: ' +
-                tickettitle + '. Grabbing listing info.')
-            getListingInfoMobile(ticketid)
-
-    if(availabletickets == 0):
-        print('No tickets available. Retrying...')
-        getEventLinkInfoMobile(x)
+        if(availabletickets > 0):
+            for x in ticketinfo:
+                tickettitle = x['node']['title']
+                ticketid = x['node']['id']
+                ticketamount = x['node']['availableTicketsCount']
+                #print(str(ticketamount) + ' tickets available. Type: ' +
+                #    tickettitle + '. Grabbing listing info.')
+                getListingInfoMobile(ticketid)
+                foundticket = 1
+                
 
 def getListingInfoMobile(id):
     headers = {
@@ -147,6 +164,7 @@ def addToCartMobile(ticketid, tickethash):
     responseinfo = jsonresp['data']['addTicketsToCart']['errors']
     if not responseinfo:
         print('Ticket added to cart. This will be valid for 10 minutes.')
+        x = sendSMS(phonenumber, 'Ticket found. It will be valid for 10 minutes!')
     elif responseinfo[0]['code'] == 'CART_CURRENCY_MISMATCH':
         print('You cannot have multiple currencies in your checkout. For example a GBP ticket and a EUR ticket. Please empty the cart.')
     elif responseinfo[0]['code'] == 'NO_TICKETS_COULD_BE_RESERVED':
