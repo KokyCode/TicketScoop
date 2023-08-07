@@ -15,7 +15,7 @@ eventLink = input('Enter the Ticketswap URL: ')
 phonenumber = input('Please enter your Phone Number: (eg: 353858150203) ')
 
 def sendSMS(numbers, message):
-    data =  urllib.parse.urlencode({'apikey': 'NmY1NDQyMzQ3OTUxMzg2NTc5NTYzMzc1NTY1MTYxNmI=	', 'numbers': numbers,
+    data =  urllib.parse.urlencode({'apikey': '	', 'numbers': numbers,
         'message' : message, 'sender': 'TicketScoop'})
     data = data.encode('utf-8')
     request = urllib.request.Request("https://api.txtlocal.com/send/?")
@@ -149,7 +149,7 @@ def addToCartMobile(ticketid, tickethash):
         'Accept-Encoding': 'gzip',
         'User-Agent': 'okhttp/4.9.0',
         'Accept-Language': 'en_IE',
-        'Authorization': 'Bearer OThlMDFkMmNkYjJhOWE1MTdjMTQ3MzMxMWQ2OWUwZjQ1YWU5ZDYwOTAyMDk3OGViZDYwYTQ5ZDEwOWIwN2Q4OQ',
+        'Authorization': 'Bearer <YOUR AUTH TOKEN HERE>',
         'mobile-app-version': '22.02.6414',
         'mobile-app-build-number': '6414',
         'mobile-app-os': 'Android'
